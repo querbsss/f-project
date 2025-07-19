@@ -40,36 +40,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (_currentUser == null) return;
     
     try {
-      // Check for UID consistency
-      print('DEBUG: === USER IDENTITY CHECK ===');
-      print('DEBUG: Current user UID: ${_currentUser!.uid}');
-      print('DEBUG: Current user email: ${_currentUser!.email}');
-      print('DEBUG: Current user display name: ${_currentUser!.displayName}');
-      print('DEBUG: Current user provider: ${_currentUser!.providerData.map((p) => p.providerId).join(', ')}');
-      
-      // Debug: Let's see what transactions exist for this user
-      print('DEBUG: Searching for transactions...');
-      
-      // First, let's see ALL transactions in the database to understand the issue
-      final allTransactionsSnapshot = await _firestore
-          .collection('transactions')
-          .get();
-      
-      print('DEBUG: Total transactions in database: ${allTransactionsSnapshot.docs.length}');
-      
-      for (int i = 0; i < allTransactionsSnapshot.docs.length && i < 10; i++) {
-        final doc = allTransactionsSnapshot.docs[i];
-        final data = doc.data();
-        print('DEBUG: Transaction ${i + 1} - userId: ${data['userId']}, type: ${data['type']}, amount: ${data['amount']}');
-      }
-      
-      // Now get transactions for current user UID ONLY
+      // Get transactions for current user only
       final snapshot = await _firestore
           .collection('transactions')
           .where('userId', isEqualTo: _currentUser!.uid)
           .get();
-      
-      print('DEBUG: Found ${snapshot.docs.length} transactions for current user UID');
       
       double income = 0.0;
       double expenses = 0.0;
@@ -78,9 +53,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         final data = doc.data();
         final amount = (data['amount'] ?? 0).toDouble();
         final type = data['type'] ?? '';
-        final userId = data['userId'] ?? 'NO_USER_ID';
-        
-        print('DEBUG: User Transaction - userId: $userId, type: $type, amount: $amount');
         
         if (type == 'deposit') {
           income += amount;
@@ -105,11 +77,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   Stream<QuerySnapshot> _getFilteredTransactions() {
     if (_currentUser == null) {
-      print('DEBUG: Current user is null in transaction history');
       return const Stream.empty();
     }
-    
-    print('DEBUG: Querying transactions for user: ${_currentUser!.uid}');
     
     Query query = _firestore
         .collection('transactions')
@@ -125,18 +94,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   // Function to clean up only truly orphaned transactions (not reassign existing ones)
   Future<void> _cleanupOrphanedTransactions() async {
     try {
-      print('DEBUG: Starting conservative transaction cleanup...');
-      
       // Get all transactions
       final allTransactions = await _firestore.collection('transactions').get();
-      print('DEBUG: Found ${allTransactions.docs.length} total transactions');
       
       // Get current Firebase Auth user info
       final currentUserUid = _currentUser!.uid;
-      final currentUserEmail = _currentUser!.email;
-      
-      print('DEBUG: Current user UID: $currentUserUid');
-      print('DEBUG: Current user email: $currentUserEmail');
       
       // Only delete transactions that are clearly orphaned or have no userId
       final batch = _firestore.batch();
@@ -146,31 +108,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       for (final doc in allTransactions.docs) {
         final data = doc.data();
         final transactionUserId = data['userId'];
-        final description = data['description'] ?? 'No description';
-        final amount = data['amount'] ?? 0;
-        final type = data['type'] ?? 'unknown';
-        
-        print('DEBUG: Transaction - userId: $transactionUserId, description: $description, amount: $amount, type: $type');
         
         if (transactionUserId == null || transactionUserId.toString().trim().isEmpty) {
           // Delete transactions with no userId
           batch.delete(doc.reference);
           deleteCount++;
-          print('DEBUG: Deleting transaction with no userId - description: $description');
         } else if (transactionUserId == currentUserUid) {
           // Count transactions that belong to current user
           currentUserCount++;
-          print('DEBUG: Keeping transaction - belongs to current user');
-        } else {
-          // Log but don't delete transactions that belong to other users
-          print('DEBUG: Found transaction belonging to other user: $transactionUserId');
         }
       }
       
       // Commit only deletions of truly orphaned transactions
       if (deleteCount > 0) {
         await batch.commit();
-        print('DEBUG: Deleted $deleteCount orphaned transactions, current user has $currentUserCount transactions');
         
         // Reload the transaction stats
         await _loadTransactionStats();
@@ -183,7 +134,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
         );
       } else {
-        print('DEBUG: No orphaned transactions to delete. Current user has $currentUserCount transactions.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('No orphaned transactions found. You have $currentUserCount transactions.'),
@@ -192,7 +142,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         );
       }
     } catch (e) {
-      print('DEBUG: Error during cleanup: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error during cleanup: $e'),
@@ -1703,12 +1652,6 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() { _loading = false; });
   }
 
-  // Example: Read all users from Firestore (for future viewing)
-  Future<List<Map<String, dynamic>>> fetchAllUsers() async {
-    final snapshot = await _firestore.collection('users').get();
-    return snapshot.docs.map((doc) => doc.data()).toList();
-  }
-
   void _checkPasswordStrength(String value) {
     if (value.length < 6) {
       _passwordStrength = 'Too short';
@@ -1981,9 +1924,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // Migration logic removed due to user data issues
         // Only grab transactions for the current user
         
-        print('DEBUG: Loading data for user UID: ${_currentUser!.uid}');
-        print('DEBUG: Loading data for user email: ${_currentUser!.email}');
-        
         // Grab user info from Firestore
         final userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
         if (userDoc.exists) {
@@ -1996,8 +1936,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             .collection('transactions')
             .where('userId', isEqualTo: _currentUser!.uid)
             .get();
-            
-        print('DEBUG: Found ${transactionsSnapshot.docs.length} transactions for current user UID');
             
         double totalDeposits = 0.0;
         double totalWithdrawals = 0.0;
@@ -2015,14 +1953,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             } else if (type == 'withdrawal') {
               totalWithdrawals += amount;
             }
-            print('DEBUG: Processing transaction - type: $type, amount: $amount, userId: $transactionUserId');
-          } else {
-            print('DEBUG: WARNING - Found transaction with mismatched userId: $transactionUserId vs ${_currentUser!.uid}');
           }
         }
         
         _totalSavings = totalDeposits - totalWithdrawals;
-        print('DEBUG: Calculated total savings: $_totalSavings (deposits: $totalDeposits, withdrawals: $totalWithdrawals)');
         
         // Pull loan balance from Firestore
         final loanDoc = await _firestore.collection('loans').doc(_currentUser!.uid).get();
@@ -2151,11 +2085,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Stream for the user's 5 most recent transactions
   Stream<QuerySnapshot> _userTransactionsStream() {
     if (_currentUser == null) {
-      print('DEBUG: _userTransactionsStream - Current user is null');
       return const Stream.empty();
     }
-    
-    print('DEBUG: _userTransactionsStream - Querying for user: ${_currentUser!.uid}');
     
     try {
       return _firestore
@@ -2164,7 +2095,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .limit(5)
           .snapshots();
     } catch (e) {
-      print('DEBUG: Error in _userTransactionsStream: $e');
+      print('Error in _userTransactionsStream: $e');
       return const Stream.empty();
     }
   }
@@ -3076,7 +3007,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 }
                                 
                                 if (snapshot.hasError) {
-                                  print('DEBUG: StreamBuilder error: ${snapshot.error}');
                                   return Container(
                                     padding: EdgeInsets.all(24),
                                     child: Column(

@@ -33,7 +33,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
     try {
       _currentUser = _auth.currentUser;
       if (_currentUser != null) {
-        // Load user's savings targets
+        //savings targets
         final userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
         if (userDoc.exists) {
           final userData = userDoc.data();
