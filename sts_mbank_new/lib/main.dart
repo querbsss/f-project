@@ -10,6 +10,8 @@ import 'dart:io';
 import 'edit_profile_screen.dart';
 import 'payment_screen.dart';
 import 'savings_screen.dart';
+import 'customer_support_screen.dart';
+import 'theme_manager.dart';
 
 // Transaction History Screen
 class TransactionHistoryScreen extends StatefulWidget {
@@ -994,12 +996,11 @@ class BankingApp extends StatefulWidget {
 }
 
 class _BankingAppState extends State<BankingApp> {
-  static final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
+      valueListenable: ThemeManager.themeNotifier,
       builder: (context, themeMode, child) {
         return MaterialApp(
           title: 'STS MBank',
@@ -1062,6 +1063,7 @@ class _BankingAppState extends State<BankingApp> {
             '/edit-profile': (context) => EditProfileScreen(),
             '/payment': (context) => PaymentScreen(),
             '/savings': (context) => SavingsScreen(),
+            '/customer-support': (context) => CustomerSupportScreen(),
           },
         );
       },
@@ -1486,7 +1488,7 @@ class _LoginScreenState extends State<LoginScreen> {
               color: Theme.of(context).primaryColor,
             ),
             onPressed: () {
-              _BankingAppState.themeNotifier.value = 
+              ThemeManager.themeNotifier.value = 
                 Theme.of(context).brightness == Brightness.light 
                   ? ThemeMode.dark 
                   : ThemeMode.light;
@@ -1835,7 +1837,7 @@ class _SignupScreenState extends State<SignupScreen> {
               color: Theme.of(context).primaryColor,
             ),
             onPressed: () {
-              _BankingAppState.themeNotifier.value = 
+              ThemeManager.themeNotifier.value = 
                 Theme.of(context).brightness == Brightness.light 
                   ? ThemeMode.dark 
                   : ThemeMode.light;
@@ -2715,6 +2717,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               title: Text('Pay Bills/Loans', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge!.color)),
               onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/payment'); },
             ),
+            ListTile(
+              leading: Icon(Icons.support_agent, color: Theme.of(context).primaryColor),
+              title: Text('Customer Support', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge!.color)),
+              onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/customer-support'); },
+            ),
             Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
@@ -2771,7 +2778,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Theme.of(context).primaryColor
             ),
             onPressed: () {
-              _BankingAppState.themeNotifier.value = 
+              ThemeManager.themeNotifier.value = 
                 Theme.of(context).brightness == Brightness.light 
                   ? ThemeMode.dark 
                   : ThemeMode.light;
