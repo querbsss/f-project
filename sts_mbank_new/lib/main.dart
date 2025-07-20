@@ -1168,6 +1168,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _loading = false;
   String? _loginError;
+  bool _obscurePassword = true;
 
   Future<void> _login() async {
     setState(() { _loginError = null; _loading = true; });
@@ -1235,7 +1236,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // Save user info to Firestore if not already present
-      final user = userCredential.user;
+      final user = userCredential.user; 
       if (user != null) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (!userDoc.exists) {
@@ -1574,7 +1575,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: 16),
                         TextFormField(
                           controller: _passwordController,
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                           style: TextStyle(color: Theme.of(context).textTheme.bodyLarge!.color),
                           decoration: InputDecoration(
                             filled: true,
@@ -1584,6 +1585,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: 'Please enter password',
                             hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
                             prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,

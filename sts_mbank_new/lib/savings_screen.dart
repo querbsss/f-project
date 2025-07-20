@@ -131,12 +131,19 @@ class _SavingsScreenState extends State<SavingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.flag, color: Color(0xFF7C3AED)),
+            Icon(Icons.flag, color: Theme.of(context).primaryColor),
             SizedBox(width: 8),
-            Text('Set Savings Goals', style: TextStyle(color: Color(0xFF7C3AED))),
+            Text(
+              'Set Savings Goals', 
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge!.color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -145,20 +152,38 @@ class _SavingsScreenState extends State<SavingsScreen> {
             TextField(
               controller: monthlyController,
               keyboardType: TextInputType.number,
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge!.color),
               decoration: InputDecoration(
                 labelText: 'Monthly Target (₱)',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: Icon(Icons.calendar_month),
+                labelStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
+                filled: true,
+                fillColor: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.grey[50] 
+                  : Colors.grey[800],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.calendar_month, color: Theme.of(context).primaryColor),
               ),
             ),
             SizedBox(height: 16),
             TextField(
               controller: yearlyController,
               keyboardType: TextInputType.number,
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge!.color),
               decoration: InputDecoration(
                 labelText: 'Yearly Target (₱)',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: Icon(Icons.calendar_today),
+                labelStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
+                filled: true,
+                fillColor: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.grey[50] 
+                  : Colors.grey[800],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
               ),
             ),
           ],
@@ -166,7 +191,10 @@ class _SavingsScreenState extends State<SavingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -189,7 +217,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF7C3AED),
+              backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
             ),
             child: Text('Save'),
@@ -203,19 +231,34 @@ class _SavingsScreenState extends State<SavingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.add_circle, color: Color(0xFF7C3AED)),
+            Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
             SizedBox(width: 8),
-            Text('Create Savings Account', style: TextStyle(color: Color(0xFF7C3AED))),
+            Text(
+              'Create Savings Account', 
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge!.color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
-        content: Text('This feature allows you to create specialized savings accounts like:\n\n• Goal-based savings (vacation, car, house)\n• Time deposits with fixed rates\n• Retirement savings accounts\n• Children\'s education funds\n\nWould you like to enable this feature?'),
+        content: Text(
+          'This feature allows you to create specialized savings accounts like:\n\n• Goal-based savings (vacation, car, house)\n• Time deposits with fixed rates\n• Retirement savings accounts\n• Children\'s education funds\n\nWould you like to enable this feature?',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyMedium!.color,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Maybe Later'),
+            child: Text(
+              'Maybe Later',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -225,7 +268,7 @@ class _SavingsScreenState extends State<SavingsScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF7C3AED),
+              backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
             ),
             child: Text('Enable'),
