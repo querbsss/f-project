@@ -1182,23 +1182,32 @@ class _LoginScreenState extends State<LoginScreen> {
         String errorMsg;
         switch (e.code) {
           case 'user-not-found':
-            errorMsg = 'No user found for that email.';
+            errorMsg = 'No account found with this email address. Please check your email or sign up.';
             break;
           case 'wrong-password':
-            errorMsg = 'Incorrect password.';
+            errorMsg = 'Incorrect password. Please try again.';
             break;
           case 'invalid-email':
-            errorMsg = 'Email address is not valid.';
+            errorMsg = 'Please enter a valid email address.';
             break;
           case 'user-disabled':
-            errorMsg = 'This user account has been disabled.';
+            errorMsg = 'This account has been disabled. Please contact support.';
+            break;
+          case 'too-many-requests':
+            errorMsg = 'Too many failed login attempts. Please try again later.';
+            break;
+          case 'invalid-credential':
+            errorMsg = 'The email or password you entered is incorrect.';
+            break;
+          case 'network-request-failed':
+            errorMsg = 'Network error. Please check your internet connection.';
             break;
           default:
-            errorMsg = 'Login failed: ${e.message}';
+            errorMsg = 'Login failed. Please check your credentials and try again.';
         }
         setState(() { _loginError = errorMsg; });
       } catch (e) {
-        setState(() { _loginError = 'Login failed: ${e.toString()}'; });
+        setState(() { _loginError = 'An unexpected error occurred. Please try again.'; });
       }
     }
     setState(() { _loading = false; });
@@ -1244,36 +1253,126 @@ class _LoginScreenState extends State<LoginScreen> {
       String errorMsg;
       switch (e.code) {
         case 'account-exists-with-different-credential':
-          errorMsg = 'Account exists with a different sign-in method.';
+          errorMsg = 'An account with this email already exists. Please use a different sign-in method.';
           break;
         case 'invalid-credential':
-          errorMsg = 'Invalid Google credentials.';
+          errorMsg = 'Google sign-in failed. Please try again.';
           break;
         case 'user-disabled':
-          errorMsg = 'This user account has been disabled.';
+          errorMsg = 'This account has been disabled. Please contact support.';
           break;
         case 'user-not-found':
-          errorMsg = 'No user found for this Google account.';
+          errorMsg = 'No account found. Please sign up first.';
+          break;
+        case 'network-request-failed':
+          errorMsg = 'Network error. Please check your internet connection and try again.';
           break;
         default:
-          errorMsg = 'Google sign-in failed: ${e.message}';
+          errorMsg = 'Google sign-in failed. Please try again later.';
       }
       setState(() { _loginError = errorMsg; });
     } catch (e) {
-      // Show a more helpful error message for configuration issues
-      String errorMsg = 'Google sign-in configuration issue. ';
-      if (e.toString().contains('DEVELOPER_ERROR') || e.toString().contains('PlatformException')) {
-        errorMsg += 'Please check Firebase Console:\n'
-                   '1. Add Android app with package: com.example.sts_mbank_new\n'
-                   '2. Add SHA-1: 7B:D2:48:E1:B5:23:22:70:9B:52:7A:3F:C4:B8:4C:45:32:00:F5:D5\n'
-                   '3. Download new google-services.json\n\n'
-                   'For now, try email/password login.';
-      } else {
-        errorMsg += e.toString();
-      }
+      // Show a user-friendly error message
+      String errorMsg = 'Google sign-in is temporarily unavailable. Please try signing in with email and password instead.';
       setState(() { _loginError = errorMsg; });
     }
     setState(() { _loading = false; });
+  }
+
+  void _showForgotPasswordDialog() {
+    final TextEditingController emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_reset, color: Theme.of(context).primaryColor),
+            SizedBox(width: 8),
+            Text(
+              'Reset Password',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge!.color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Enter your email address and we\'ll send you a link to reset your password.',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium!.color,
+              ),
+            ),
+            SizedBox(height: 16),
+            TextFormField(
+              controller: emailController,
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge!.color),
+              decoration: InputDecoration(
+                hintText: 'Enter your email',
+                hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
+                prefixIcon: Icon(Icons.email, color: Theme.of(context).primaryColor),
+                filled: true,
+                fillColor: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.grey[50] 
+                  : Colors.grey[800],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (emailController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Please enter your email address'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+              
+              try {
+                await _auth.sendPasswordResetEmail(email: emailController.text.trim());
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Password reset email sent! Check your inbox.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to send reset email. Please check your email address.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Send Reset Email'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showFAQ(BuildContext context) {
@@ -1461,7 +1560,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
                             ),
-                            errorText: _loginError,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -1498,6 +1596,36 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
+                        
+                        // Error Message Display
+                        if (_loginError != null) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.red, size: 20),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _loginError!,
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        
                         SizedBox(height: 24),
                         _loading
                             ? Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor))
@@ -1513,9 +1641,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                   minimumSize: Size(double.infinity, 50),
                                 ),
                               ),
+                        
+                        // Forgot Password Link
+                        SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            _showForgotPasswordDialog();
+                          },
+                          child: Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        
                         SizedBox(height: 16),
                         ElevatedButton.icon(
-                          onPressed: _loginWithGoogle,
+                          onPressed: _loading ? null : _loginWithGoogle,
                           icon: Icon(Icons.login),
                           label: Text('Sign in with Google'),
                           style: ElevatedButton.styleFrom(
