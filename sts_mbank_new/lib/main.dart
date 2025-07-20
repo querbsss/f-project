@@ -2679,7 +2679,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: Icon(Icons.account_balance_wallet, color: Theme.of(context).primaryColor),
-              title: Text('My Accounts', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge!.color)),
+              title: Text('My Account', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge!.color)),
               onTap: () async {
                 Navigator.pop(context);
                 await Navigator.push(
@@ -2734,7 +2734,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Text('STS MBank', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+        title: Container(
+          height: 40,
+          child: Image.asset(
+            'assets/stslogo.jpg',
+            fit: BoxFit.contain,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
