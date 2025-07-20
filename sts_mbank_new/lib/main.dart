@@ -474,13 +474,6 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
           // If no user document exists, use Firebase Auth data
           _nameController.text = _currentUser!.displayName ?? '';
           _emailController.text = _currentUser!.email ?? '';
-          // Set sample data for demonstration
-          if (_nameController.text.isEmpty) {
-            _nameController.text = 'Juan Dela Cruz';
-          }
-          if (_dobController.text.isEmpty) {
-            _dobController.text = '1990-01-15';
-          }
         }
       }
       setState(() {
@@ -1678,25 +1671,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: Text('Sign in with Google'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.redAccent,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            minimumSize: Size(double.infinity, 50),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        Text('OR', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500)),
-                        SizedBox(height: 12),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // Demo login - bypass authentication for testing
-                            Navigator.pushReplacementNamed(context, '/dashboard');
-                          },
-                          icon: Icon(Icons.play_arrow),
-                          label: Text('Demo Login (Skip Auth)'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(vertical: 16),
                             textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
