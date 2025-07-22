@@ -1,0 +1,2 @@
+This is a test file to verify correct Git author configuration.
+Created to ensure commits show up as querbsss instead of krebsintrouble.
